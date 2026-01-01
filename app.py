@@ -31,5 +31,5 @@ def make_decision(applicant: dict):
     return {
         "probability_of_default": round(pd_score, 4),
         "decision": decision,
-        "reason_codes": reasons
+        "top_risk_factors": reasons
     }

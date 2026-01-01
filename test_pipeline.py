@@ -1,30 +1,28 @@
 import requests
-import json
 
-# The URL where your FastAPI app is running
 BASE_URL = "http://127.0.0.1:8000/decide"
 
-# Sample test cases
 applicants = [
     {
-        "name": "High Earners (Auto-Approve)",
+        "name": "Low Risk Applicant",
         "data": {
-            "income": 120000, "monthly_debt": 1000, "total_credit_limit": 50000,
-            "used_credit": 2000, "loan_amount": 5000, "missed_payments_2yr": 0
+            "loan_amnt": 5000,
+            "installment": 150,
+            "annual_inc": 100000,
+            "revol_bal": 2000,
+            "revol_util": 10.0,
+            "acc_open_past_24mths": 0
         }
     },
     {
-        "name": "High Debt (Manual Review)",
+        "name": "High Risk Applicant",
         "data": {
-            "income": 45000, "monthly_debt": 2000, "total_credit_limit": 10000,
-            "used_credit": 7000, "loan_amount": 15000, "missed_payments_2yr": 1
-        }
-    },
-    {
-        "name": "High Risk (Reject)",
-        "data": {
-            "income": 30000, "monthly_debt": 2500, "total_credit_limit": 5000,
-            "used_credit": 4500, "loan_amount": 20000, "missed_payments_2yr": 4
+            "loan_amnt": 35000,
+            "installment": 1200,
+            "annual_inc": 40000,
+            "revol_bal": 25000,
+            "revol_util": 95.0,
+            "acc_open_past_24mths": 10
         }
     }
 ]
@@ -33,10 +31,19 @@ def run_tests():
     print("🚀 Starting ACDS Pipeline Integration Test...\n")
     for person in applicants:
         response = requests.post(BASE_URL, json=person["data"])
-        result = response.json()
         
+        # Debugging: If the API crashes, show the error message
+        if response.status_code != 200:
+            print(f"❌ Error for {person['name']}: Status {response.status_code}")
+            print(f"Details: {response.text}")
+            continue
+
+        result = response.json()
         print(f"Scenario: {person['name']}")
-        print(f"Result: {result['decision']} (Prob: {result['probability_of_default']})")
+        print(f"Decision: {result['decision']}")
+        print(f"PD Score: {result['probability_of_default']}")
+        if result['top_risk_factors']:
+            print(f"Risk Factors: {result['top_risk_factors']}")
         print("-" * 30)
 
 if __name__ == "__main__":
